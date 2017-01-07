@@ -11,10 +11,10 @@ They are as follows:
 Usage examples are at the end of the file PrefixTree.ecl
 
 Read the original code walk-through on the HPCC Systems blog:
-https://hpccsystems.com/resources/blog?uid=225 
+ https://hpccsystems.com/resources/blog?uid=225 
 
 Read how to install code bundles onto the HPCC platform:
-https://github.com/hpcc-systems/HPCC-Platform/blob/master/ecl/ecl-bundle/BUNDLES.rst#installing-a-bundle
+ https://github.com/hpcc-systems/HPCC-Platform/blob/master/ecl/ecl-bundle/BUNDLES.rst#installing-a-bundle
 
 Read about other bundles:
-https://github.com/hpcc-systems/ecl-bundles
+ https://github.com/hpcc-systems/ecl-bundles
