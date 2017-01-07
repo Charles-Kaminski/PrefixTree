@@ -5,7 +5,9 @@ This project is a code bundle for the HPCCSystem big data platform.  The code sh
 
 They are as follows:  
 1. Create - Efficiently creates a prefix tree on a horizontally scalable big data platform from a dataset
+
 2. QueryThorLevenshtein - Uses a dataset to query a prefix tree using Levenshtein
+
 3. QueryRoxieLevenshtein - Uses a string to query a prefix tree using Levenshtein
 
 Usage examples are at the end of the file PrefixTree.ecl
