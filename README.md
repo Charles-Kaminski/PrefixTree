@@ -1,7 +1,7 @@
 # PrefixTree
 CFK 02/23/2016 charles.kaminski@lexisnexis.com
 
-This project is a code bundle for the HPCCSystem big data platform.  The code showcases prefix trees on a big data platform and shows how prefix trees can be used to significantly improve the performance of certain algorithms such as the Levenshtein edit distance algorithm.  The code is a set of three function macros that do the heavy lifting for you.
+This project is a code bundle for the HPCCSystem big data platform.  The code showcases using prefix trees on a big data platform and demonstrates how prefix trees can be used to significantly improve the performance of certain algorithms such as the Levenshtein edit distance algorithm.  The code is a set of three function macros that do the heavy lifting for you.
 
 They are as follows:  
  1. Create - Efficiently creates a prefix tree from a dataset
