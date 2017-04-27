@@ -70,18 +70,20 @@ EXPORT PrefixTree := MODULE
 		 //  The code below assumes no more than 72 Trillion prefix tree nodes
 		 //  on <<EACH>> of the 92,233 Thor nodes.
 		 
+         IMPORT Std;
+
 		 WordLayout := RECORD
 				STRING   word;
 		 END;
 		 WordLayout FormatWordsTransform(RECORDOF(infile) l) := TRANSFORM
-				SELF.word := TRIM(l.infield);
+            SELF.word := (STRING)TRIM(l.infield);
 		 END;
 		 
 		 // Trim the infield and get rid of any other fields
 		 cleaned_ds := PROJECT(infile, FormatWordsTransform(LEFT));
 		 
 		 // Distribute the files across the Thor based on the dist_length parameter
-		 distributed_ds := DISTRIBUTE(cleaned_ds, HASH(cleaned_ds.word[dist_length]));
+         distributed_ds := DISTRIBUTE(cleaned_ds, HASH(cleaned_ds.word[..dist_length]));
 		 
 		 // Get rid of any empty entries
 		 input_ds := distributed_ds(word <> '');
@@ -132,8 +134,8 @@ EXPORT PrefixTree := MODULE
 		 
 		 NodesLayout GetPTNodesTransform(NodesLayout L, NodesLayout R) := TRANSFORM
 				SELF.nodes        := MarkNodes(L.word, L.nodes, R.word, R.nodes);
-				SELF.node_cnt     := stringlib.StringFindCount(SELF.nodes,'1');
-				SELF.compute_node := Thorlib.Node();			
+                SELF.node_cnt     := Std.Str.FindCount(SELF.nodes,'1');
+                SELF.compute_node := Std.System.Thorlib.Node();
 				SELF := R;
 		 END;
 		 // Identify where the nodes for the prefix tree will be in your word field
@@ -210,7 +212,7 @@ EXPORT PrefixTree := MODULE
 				__result    = out;
 		 ENDC++;
 		 NodesLayout GetNodeIdsTransform(NodesLayout L, NodesLayout R) := TRANSFORM
-				SELF.compute_node := Thorlib.Node();
+                SELF.compute_node := Std.System.Thorlib.Node();
 				SELF.node_ids     := (DATA) AssignNodeIDs(L.word, L.nodes, L.node_cnt, (STRING) L.node_ids,
 																									R.word, R.nodes, R.node_cnt, SELF.compute_node);
 				SELF := R;
@@ -281,7 +283,7 @@ EXPORT PrefixTree := MODULE
 				SELF._max         := LENGTH(L.word);
 				SELF._min         := LENGTH(L.word);			
 				SELF.is_word      := IF(C=L.node_cnt, True, False);
-				SELF.compute_node := Thorlib.Node();			
+                SELF.compute_node := Std.System.Thorlib.Node();
 		 END; 
 		 // Break each word record into multiple node records
 		 normalized_pt_ds := NORMALIZE(node_ids_ds, LEFT.node_cnt, NormalizePTTransform(LEFT,COUNTER));
@@ -352,11 +354,11 @@ EXPORT PrefixTree := MODULE
 				int cost = 0;
 				int k = v0[0];
 						
-				for (int i=k; i<k+lenNode; i++)
+                for (unsigned int i=k; i<k+lenNode; i++)
 				{
 					 min_value = 255;
 					 v1[0] = i + 1;
-					 for (int j=0; j<lenWord; j++)
+                     for (unsigned int j=0; j<lenWord; j++)
 					 {
 							cost = (node[i-k] == word[j]) ? 0 : 1;
 							new_value = std::min(v1[j] + 1, std::min(v0[j+1] + 1, v0[j] + cost));
@@ -365,7 +367,7 @@ EXPORT PrefixTree := MODULE
 								 min_value=new_value;
 							}
 					 }
-					 memcpy(&v0[0], &v1[0], lenState);
+                     memcpy(&v0[0], &v1[0], v_size);
 				}
 		
 				// Store the min_value;
@@ -409,9 +411,9 @@ EXPORT PrefixTree := MODULE
 		 END;
 			
 		 QueryPTLayout InitialQueryDSTransform(RECORDOF(query_ds) L) := TRANSFORM
-				SELF.query_string := L.query_field;
+                SELF.query_string := (STRING)L.query_field;
 		 END;
-		 preped_query_ds := PROJECT(query_ds, InitialQueryDSTransform(LEFT));
+         prepped_query_ds := PROJECT(query_ds, InitialQueryDSTransform(LEFT));
 		 QueryPTLayout QueryPTTransform(QueryPTLayout L, RECORDOF(pt_index) R) := TRANSFORM
 				SELF.query_string         := L.query_string;
 				SELF.state                := IF(R.is_word, L.state, CalculateLevenshteinVector(L.query_string, R.node, L.state));
@@ -427,7 +429,7 @@ EXPORT PrefixTree := MODULE
 				SELF.final_distance       := IF(R.is_word, GetFinalDistance(SELF.state), L.final_distance);	
 		 END;
 	 
-		 looped_ds := LOOP(preped_query_ds, 
+         looped_ds := LOOP(prepped_query_ds,
 				LEFT.is_word = False,
 				EXISTS(ROWS(LEFT)) = True,
 				JOIN(ROWS(LEFT), pt_index, LEFT.node_id = RIGHT.parent_id AND
@@ -497,11 +499,11 @@ EXPORT PrefixTree := MODULE
 				int cost = 0;
 				int k = v0[0];
 						
-				for (int i=k; i<k+lenNode; i++)
+                for (unsigned int i=k; i<k+lenNode; i++)
 				{
 					 min_value = 255;
 					 v1[0] = i + 1;
-					 for (int j=0; j<lenWord; j++)
+                     for (unsigned int j=0; j<lenWord; j++)
 					 {
 							cost = (node[i-k] == word[j]) ? 0 : 1;
 							new_value = std::min(v1[j] + 1, std::min(v0[j+1] + 1, v0[j] + cost));
@@ -510,7 +512,7 @@ EXPORT PrefixTree := MODULE
 								 min_value=new_value;
 							}
 					 }
-					 memcpy(&v0[0], &v1[0], lenState);
+                     memcpy(&v0[0], &v1[0], v_size);
 				}
 		
 				// Store the min_value;
@@ -553,7 +555,7 @@ EXPORT PrefixTree := MODULE
 				UNSIGNED1 final_distance       := 0;
 		 END;
 			
-		 preped_query_ds := DATASET([{input_query_string}], QueryPTLayout);
+         prepped_query_ds := DATASET([{(STRING)input_query_string}], QueryPTLayout);
 		 QueryPTLayout QueryPTTransform(QueryPTLayout L, RECORDOF(pt_index) R) := TRANSFORM
 				SELF.query_string         := L.query_string;
 				SELF.state                := IF(R.is_word, L.state, CalculateLevenshteinVector(L.query_string, R.node, L.state));
@@ -569,7 +571,7 @@ EXPORT PrefixTree := MODULE
 				SELF.final_distance       := IF(R.is_word, GetFinalDistance(SELF.state), L.final_distance);	
 		 END;
 	 
-		 looped_ds := LOOP(preped_query_ds, 
+         looped_ds := LOOP(prepped_query_ds,
 				LEFT.is_word = False,
 				EXISTS(ROWS(LEFT)) = True,
 				JOIN(ROWS(LEFT), pt_index, LEFT.node_id = RIGHT.parent_id AND
